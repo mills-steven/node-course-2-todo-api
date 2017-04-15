@@ -14,7 +14,7 @@ var app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
-//POST
+//POST /todos
 app.post('/todos', (req, res) =>{
   var todo = new Todo({
     text: req.body.text
@@ -26,17 +26,6 @@ app.post('/todos', (req, res) =>{
   });
 });
 
-// app.use(bodyParser.json());
-// app.post('/users', (req, res) => {
-//   var user = new User({
-//     email: req.body.text
-//   });
-//   user.save().then((doc) => {
-//     res.send(doc);
-//   }, (e) => {
-//     res.status(400).send(e);
-//   });
-// });
 
 //GET
 app.get('/todos', (req, res) => {
@@ -109,6 +98,21 @@ app.patch('/todos/:id', (req, res) => {
     res.status(400).send();
   })
 });
+
+//Post /users
+app.post('/users', (req,res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    var user = new User(body);
+
+      user.save().then(() => {
+        return user.generateAuthToken();
+      }).then((token) => {
+          res.header('x-auth', token).send(user);
+      }).catch((e) => {
+        res.status(400).send(e);
+      });
+});
+
 
 app.listen(port, () => {
   console.log(`App started on port ${port}`);
