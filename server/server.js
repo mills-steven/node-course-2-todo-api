@@ -81,38 +81,59 @@ app.delete('/todos/:id', authenticate, (req, res) => {
   });
 });
 
+
 app.patch('/todos/:id', authenticate, (req, res) => {
-  var id = req.params.id
+  var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  if(_.isBoolean(body.completed) && body.completed) {
+
+  if (_.isBoolean(body.completed) && body.completed) {
     body.completedAt = new Date().getTime();
-  }else {
+  } else {
     body.completed = false;
     body.completedAt = null;
   }
 
-  Todo.findByOneAndUpdate(
-    {
-    _id: id,
-    _creator: req.user._id
-    }
-    , {
-    $set: body
-  }, {
-    new: true
-  }).then((todo) => {
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
+
     res.send({todo});
   }).catch((e) => {
     res.status(400).send();
   })
 });
+
+app.patch('/todos/:id', authenticate, (req, res) => {
+  var id = req.params.id;
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  })
+});
+
 
 //Post /users
 app.post('/users', (req,res) => {
@@ -149,7 +170,7 @@ app.post('/users/login', (req, res) => {
 });
 
 app.delete('/users/me/token', authenticate, (req, res) => {
-  res.user.removeToken(req.token).then(() => {
+  req.user.removeToken(req.token).then(() => {
     res.status(200).send();
   }, () => {
     res.status(400).send();
